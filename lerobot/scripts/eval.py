@@ -175,16 +175,13 @@ def rollout(
             # Debug: Check the structure of final_info
             for i, final_info_item in enumerate(info["final_info"]):
                 if final_info_item is not None:
-                    logging.info(f"Step {step}, Env {i}: final_info keys = {final_info_item.keys()}")
-                    logging.info(f"Step {step}, Env {i}: final_info = {final_info_item}")
+                    print(f"Step {step}, Env {i}: final_info keys = {final_info_item.keys()}")
+                    print(f"Step {step}, Env {i}: final_info = {final_info_item}")
             
-            successes = [info["is_success"] if info is not None else False for info in info["final_info"]]
-            # Debug: Print when we detect successes
-            if any(successes):
-                logging.info(f"Step {step}: Detected successes: {successes}")
-            elif any(info_item is not None for info_item in info["final_info"]):
-                # Log when episodes end but without success
-                logging.info(f"Step {step}: Episodes ended but no success. Success values: {successes}")
+            successes = [info.get("is_success", False) if info is not None else False for info in info["final_info"]]
+            # Debug: Print when we detect successes or episode ends
+            if any(info_item is not None for info_item in info["final_info"]):
+                print(f"Step {step}: Episodes ended. Success values: {successes}")
         else:
             successes = [False] * env.num_envs
 
