@@ -6,7 +6,7 @@ LeRobot provides models, tools, and pretrained policies for robotics in PyTorch.
 
 Clone the repo and install dependencies:
 ```bash
-git clone https://github.com/kylekam/lerobot.git #Our branch
+git clone https://github.com/alfred-cueva/lerobot.git #Our branch
 git checkout gatech/reproduce_results
 cd lerobot
 conda create -y -n lerobot python=3.10
