@@ -163,10 +163,28 @@ def rollout(
         if render_callback is not None:
             render_callback(env)
 
+        # Debug: Log info structure to understand success tracking
+        if step == 0:
+            logging.info(f"Info keys at step {step}: {info.keys()}")
+            if "final_info" in info:
+                logging.info(f"final_info present: {info['final_info']}")
+
         # VectorEnv stores is_success in `info["final_info"][env_index]["is_success"]`. "final_info" isn't
         # available of none of the envs finished.
         if "final_info" in info:
+            # Debug: Check the structure of final_info
+            for i, final_info_item in enumerate(info["final_info"]):
+                if final_info_item is not None:
+                    logging.info(f"Step {step}, Env {i}: final_info keys = {final_info_item.keys()}")
+                    logging.info(f"Step {step}, Env {i}: final_info = {final_info_item}")
+            
             successes = [info["is_success"] if info is not None else False for info in info["final_info"]]
+            # Debug: Print when we detect successes
+            if any(successes):
+                logging.info(f"Step {step}: Detected successes: {successes}")
+            elif any(info_item is not None for info_item in info["final_info"]):
+                # Log when episodes end but without success
+                logging.info(f"Step {step}: Episodes ended but no success. Success values: {successes}")
         else:
             successes = [False] * env.num_envs
 
@@ -179,10 +197,17 @@ def rollout(
         all_successes.append(torch.tensor(successes))
 
         step += 1
+        # Calculate running success rate: for each batch element, check if ANY step so far had success=True
         running_success_rate = (
             einops.reduce(torch.stack(all_successes, dim=1), "b n -> b", "any").numpy().mean()
         )
-        progbar.set_postfix({"running_success_rate": f"{running_success_rate.item() * 100:.1f}%"})
+        # Debug: log when we have successes
+        num_successes = torch.stack(all_successes, dim=1).any(dim=1).sum().item()
+        num_envs_done = done.sum()
+        if num_successes > 0 or num_envs_done > 0:
+            logging.info(f"Step {step}: {num_successes}/{env.num_envs} envs succeeded, {num_envs_done}/{env.num_envs} done, running_rate={running_success_rate*100:.1f}%")
+        
+        progbar.set_postfix({"running_success_rate": f"{running_success_rate * 100:.1f}%"})
         progbar.update()
 
     # Track the final observation.
