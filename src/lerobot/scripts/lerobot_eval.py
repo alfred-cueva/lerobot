@@ -334,7 +334,7 @@ def eval_policy(
             fig.savefig(io_buf, format='raw', dpi=DPI)
             io_buf.seek(0)
             result = np.reshape(np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
-                                shape=(int(fig.bbox.bounds[2]), int(fig.bbox.bounds[3]), -1))[:,:,:3]
+                                (int(fig.bbox.bounds[2]), int(fig.bbox.bounds[3]), -1))[:,:,:3]
             io_buf.close()
             plt.close()        
 
